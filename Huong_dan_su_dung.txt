@@ -1,0 +1,100 @@
+Google AI Pro mở / cộng dồn bằng một chạm (bản giả lập)
+========================================
+
+
+Chỉ hỗ trợ Google AI Pro (5 TB)
+· Bước 1: 12 tháng dùng thử miễn phí
+· Bước 2: cộng dồn thêm 6 tháng
+· Bước 3: cộng dồn thêm 6 tháng nữa (tổng cộng 24 tháng)
+· Dự phòng: còn cộng thêm được 6 tháng nữa (tối đa 30 tháng)
+Ultra (20TB / 30TB) đã bỏ: phía chính thức không còn cấp offer dùng thử cho tài khoản thường.
+
+
+
+Bấm đúp Cai_dat_moi_truong.bat
+Tự hoàn tất:
+1. Kiểm tra Python (cần 3.10+)
+2. Cài frida 16.5.9 (17.x không dùng được, sẽ tự hạ cấp)
+3. Tìm adb (biến môi trường → PATH → MuMu đi kèm → không có thì tự tải platform-tools)
+4. Kết nối giả lập + chạy tự kiểm tra
+Thấy «Tự kiểm tra môi trường đã đạt» là đi tiếp được.
+
+
+
+1. Giả lập MuMu đã khởi động, đã đăng nhập tài khoản Google cần dùng
+2. Tài khoản đó đã gắn phương thức thanh toán (thẻ)
+3. Tài khoản đó không có gói Google One nào đang còn
+4. Cửa hàng Play mở lên bình thường (mở không được thì khởi động lại giả lập trước)
+
+
+
+0_Kiem_tra_moi_truong.bat Chạy trước, toàn xanh rồi mới tiếp tục
+1_Xem_danh_sach_offer.bat Xem tài khoản hiện tại có những gói miễn phí nào (không đặt mua, không rủi ro)
+
+2_Pro_12_thang_Buoc_1.bat Lần 1: 12 tháng miễn phí
+3_Pro_Them_6_thang_Buoc_2.bat Lần 2: +6 tháng nữa (18)
+4_Pro_Them_6_thang_Buoc_3.bat Lần 3: +6 tháng nữa (24)
+5_Pro_Du_phong_6_thang.bat Gói dự phòng (dùng sau khi ba bước trước đều thành công)
+
+
+
+Đặt mua trực tiếp chỉ «đổi sang cùng gói, ngày không đổi», bắt buộc phải đi qua nâng cấp gói đăng ký của Play:
+
+1. Đọc purchaseToken của gói đăng ký hiện tại từ library.db của Play
+(script đã tự đọc, bạn không cần điền)
+2. BillingFlowParams.SubscriptionUpdateParams
+.setOldPurchaseToken(token cũ)
+.setReplaceProrationMode(5) // CHARGE_FULL_PRICE
+3. Mở lại trang thanh toán
+
+Trang thanh toán khi cộng dồn thành công trông như thế này (đây mới là đúng):
+
+Sắp bị trừ Hôm nay JP¥0
+546 ngày (bao gồm 364 ngày được quy đổi từ thời gian còn lại của gói hiện tại của bạn)
+Ngày bắt đầu: 18 tháng 5, 2028
+JP¥2,900/month
+Chúng tôi sẽ thu khoản phí đầu tiên của bạn vào 18 tháng 5, 2028
+
+Nếu hiển thị là «Ngày bắt đầu = ngày hết hạn hiện tại, hôm nay trừ tiền luôn», nghĩa là chưa đi qua chế độ nâng cấp:
+· Kiểm tra gói đăng ký có đang ở trạng thái «đang hoạt động» không (gói đã hủy thì không cho cộng dồn)
+· Kiểm tra có quên tham số --stack không
+
+Lệnh tay (tương đương với bấm đúp file bat):
+python ultra0.py --account "current@device" --no-add --force --plan pro12
+python ultra0.py --account "current@device" --no-add --force --stack --plan pro6
+python ultra0.py --account "current@device" --no-add --force --stack --plan pro6b
+python ultra0.py --account "current@device" --no-add --force --stack --plan pro6c
+
+
+
+· Gói đăng ký phải «đang hoạt động» (tự gia hạn đang bật) mới cộng dồn được
+· Đã hủy (hiển thị «Đã hủy / Đăng ký lại») thì lần mua mới sẽ bị tính là «hết hạn rồi mới chuyển sang trả phí», không cho thời gian dùng thử
+· Vì vậy thứ tự là: xác nhận gói đang hoạt động trước → cộng dồn → cộng xong hết rồi mới hủy gói
+· Hủy rồi thì quyền lợi vẫn giữ đến ngày hết hạn, không mất sớm
+
+
+
+Mở play.google.com/store/account/subscriptions xem «Ngày thanh toán tiếp theo»:
+Sau bước 1 → 12 tháng sau
+Sau bước 2 → 18 tháng sau
+Sau bước 3 → 24 tháng sau
+Ngày dời về sau = cộng dồn thành công, có thể làm bước tiếp; không đổi = dừng tay.
+
+
+
+Kẹt ở connecting
+Cửa hàng Play chưa mở lên. Script sẽ tự mở; vẫn thất bại thì mở tay Cửa hàng Play hoặc khởi động lại giả lập.
+Bạn đã đăng ký
+Tài khoản này đã có gói đó rồi, không mua trùng được.
+Không kết nối được với Internet
+Mạng giả lập chập chờn trong giây lát. Đợi vài giây thử lại; hay gặp thì khởi động lại giả lập.
+Invalid signature
+Đây là lỗi phía web (trang thanh toán web không nhận token của Android). Đặt mua chỉ đi qua script này (Android Billing).
+Số tiền trong hộp thoại không phải 0 / ngày không dời về sau
+Đừng bấm đăng ký, đóng lại luôn, kiểm tra trạng thái đăng ký và tham số --stack.
+
+
+
+· Thất bại liên tiếp nhiều lần sẽ bị kiểm soát rủi ro, cách 24 giờ rồi thử lại
+· Nhớ hủy gói trước khi hết hạn, nếu không sẽ tự trừ JP¥2,900/tháng
+· Nên dùng thẻ có hạn mức thấp, lỡ quên hủy cũng không trừ được
